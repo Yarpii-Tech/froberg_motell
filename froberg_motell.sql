@@ -1,4 +1,8 @@
 
+ALTER TABLE `users`
+  ADD COLUMN `last_motell` VARCHAR(255) NULL
+;
+
 INSERT INTO `addon_account` (name, label, shared) VALUES
   ('motell_black_money','Svarta pengar Motell',0)
 ;
