@@ -1,6 +1,6 @@
 Froberg_Motell
 
-fungerar iaf
+det är esx_property men ett motell som du bara har funktionen att hyra
 
 [REQUIREMENTS]
 
