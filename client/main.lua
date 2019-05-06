@@ -13,11 +13,11 @@ local Keys = {
 ESX                           = nil
 local GUI                     = {}
 GUI.Time                      = 0
-local OwnedMotells         = {}
+local Ownedmotels         = {}
 local Blips                   = {}
-local CurrentMotell         = nil
-local CurrentMotellOwner    = nil
-local LastMotell           = nil
+local Currentmotel         = nil
+local CurrentmotelOwner    = nil
+local Lastmotel           = nil
 local LastPart                = nil
 local HasAlreadyEnteredMarker = false
 local CurrentAction           = nil
@@ -34,430 +34,312 @@ function DrawSub(text, time)
 end
 
 function CreateBlips()
-
-  for i=1, #Config.Motells, 1 do
-
-    local motell = Config.Motells[i]
-
-    if motell.entering ~= nil then
-
-      Blips[motell.name] = AddBlipForCoord(motell.entering.x, motell.entering.y, motell.entering.z)
-
-      SetBlipSprite (Blips[motell.name], 369)
-      SetBlipDisplay(Blips[motell.name], 4)
-      SetBlipScale  (Blips[motell.name], 1.0)
-      SetBlipAsShortRange(Blips[motell.name], true)
-
+  for i=1, #Config.motels, 1 do
+    local motel = Config.motels[i]
+    if motel.entering ~= nil then
+      Blips[motel.name] = AddBlipForCoord(motel.entering.x, motel.entering.y, motel.entering.z)
+      SetBlipSprite (Blips[motel.name], 369)
+      SetBlipDisplay(Blips[motel.name], 4)
+      SetBlipScale  (Blips[motel.name], 1.0)
+      SetBlipAsShortRange(Blips[motel.name], true)
       BeginTextCommandSetBlipName("STRING")
       AddTextComponentString(_U('free_prop'))
-      EndTextCommandSetBlipName(Blips[motell.name])
-
+      EndTextCommandSetBlipName(Blips[motel.name])
     end
   end
-
 end
 
-function GetMotells()
-  return Config.Motells
+function Getmotels()
+  return Config.motels
 end
 
-function GetMotell(name)
-
-  for i=1, #Config.Motells, 1 do
-    if Config.Motells[i].name == name then
-      return Config.Motells[i]
+function Getmotel(name)
+  for i=1, #Config.motels, 1 do
+    if Config.motels[i].name == name then
+      return Config.motels[i]
     end
   end
-
 end
 
-function GetGateway(motell)
-
-  for i=1, #Config.Motells, 1 do
-
-    local motell2 = Config.Motells[i]
-
-    if motell2.isGateway and motell2.name == motell.gateway then
-      return motell2
-    end
-
-  end
-
-end
-
-function GetGatewayMotells(motell)
-
-  local motells = {}
-
-  for i=1, #Config.Motells, 1 do
-    if Config.Motells[i].gateway == motell.name then
-      table.insert(motells, Config.Motells[i])
+function GetGateway(motel)
+  for i=1, #Config.motels, 1 do
+    local motel2 = Config.motels[i]
+    if motel2.isGateway and motel2.name == motel.gateway then
+      return motel2
     end
   end
-
-  return motells
-
 end
 
-function EnterMotell(name, owner)
+function GetGatewaymotels(motel)
+  local motels = {}
+  for i=1, #Config.motels, 1 do
+    if Config.motels[i].gateway == motel.name then
+      table.insert(motels, Config.motels[i])
+    end
+  end
+  return motels
+end
 
-  local motell       = GetMotell(name)
+function Entermotel(name, owner)
+  local motel       = Getmotel(name)
   local playerPed      = GetPlayerPed(-1)
-  CurrentMotell      = motell
-  CurrentMotellOwner = owner
-
-  for i=1, #Config.Motells, 1 do
-    if Config.Motells[i].name ~= name then
-      Config.Motells[i].disabled = true
+  Currentmotel      = motel
+  CurrentmotelOwner = owner
+  for i=1, #Config.motels, 1 do
+    if Config.motels[i].name ~= name then
+      Config.motels[i].disabled = true
     end
   end
-
-  TriggerServerEvent('froberg_motell:saveLastMotell', name)
-
+  TriggerServerEvent('froberg_motel:saveLastmotel', name)
   Citizen.CreateThread(function()
-
     DoScreenFadeOut(800)
-
     while not IsScreenFadedOut() do
       Citizen.Wait(0)
     end
-
-    for i=1, #motell.ipls, 1 do
-
-      RequestIpl(motell.ipls[i])
-
-      while not IsIplActive(motell.ipls[i]) do
+    for i=1, #motel.ipls, 1 do
+      RequestIpl(motel.ipls[i])
+      while not IsIplActive(motel.ipls[i]) do
         Citizen.Wait(0)
       end
-
     end
-
-    SetEntityCoords(playerPed, motell.inside.x,  motell.inside.y,  motell.inside.z)
-
+    SetEntityCoords(playerPed, motel.inside.x,  motel.inside.y,  motel.inside.z)
     DoScreenFadeIn(800)
-
-    DrawSub(motell.label, 5000)
+    DrawSub(motel.label, 5000)
   end)
-
 end
 
-function ExitMotell(name)
-
-  local motell  = GetMotell(name)
+function Exitmotel(name)
+  local motel  = Getmotel(name)
   local playerPed = GetPlayerPed(-1)
   local outside   = nil
-  CurrentMotell = nil
-
-  if motell.isSingle then
-    outside = motell.outside
+  Currentmotel = nil
+  if motel.isSingle then
+    outside = motel.outside
   else
-    outside = GetGateway(motell).outside
+    outside = GetGateway(motel).outside
   end
-
-  TriggerServerEvent('froberg_motell:deleteLastMotell')
-
+  TriggerServerEvent('froberg_motel:deleteLastmotel')
   Citizen.CreateThread(function()
-
     DoScreenFadeOut(800)
-
     while not IsScreenFadedOut() do
       Citizen.Wait(0)
     end
-
     SetEntityCoords(playerPed, outside.x,  outside.y,  outside.z)
-
-    for i=1, #motell.ipls, 1 do
-      RemoveIpl(motell.ipls[i])
+    for i=1, #motel.ipls, 1 do
+      RemoveIpl(motel.ipls[i])
     end
-
-    for i=1, #Config.Motells, 1 do
-      Config.Motells[i].disabled = false
+    for i=1, #Config.motels, 1 do
+      Config.motels[i].disabled = false
     end
-
     DoScreenFadeIn(800)
-
   end)
-
 end
 
-function SetMotellOwned(name, owned)
-
-  local motell     = GetMotell(name)
+function SetmotelOwned(name, owned)
+  local motel     = Getmotel(name)
   local entering     = nil
   local enteringName = nil
-
-  if motell.isSingle then
-    entering     = motell.entering
-    enteringName = motell.name
+  if motel.isSingle then
+    entering     = motel.entering
+    enteringName = motel.name
   else
-    local gateway = GetGateway(motell)
+    local gateway = GetGateway(motel)
     entering      = gateway.entering
     enteringName  = gateway.name
   end
-
   if owned then
-
-    OwnedMotells[name] = true
-
+    Ownedmotels[name] = true
     RemoveBlip(Blips[enteringName])
-
     Blips[enteringName] = AddBlipForCoord(entering.x,  entering.y,  entering.z)
-
     SetBlipSprite(Blips[enteringName], 357)
     SetBlipAsShortRange(Blips[enteringName], true)
-
     BeginTextCommandSetBlipName("STRING")
     AddTextComponentString(_U('property'))
     EndTextCommandSetBlipName(Blips[enteringName])
-
   else
-
-    OwnedMotells[name] = nil
-
+    Ownedmotels[name] = nil
     local found = false
-
-    for k,v in pairs(OwnedMotells) do
-
-      local _motell = GetMotell(k)
-      local _gateway  = GetGateway(_motell)
-
+    for k,v in pairs(Ownedmotels) do
+      local _motel = Getmotel(k)
+      local _gateway  = GetGateway(_motel)
       if _gateway ~= nil then
-
         if _gateway.name == enteringName then
           found = true
           break
         end
       end
-
     end
-
     if not found then
-
       RemoveBlip(Blips[enteringName])
-
       Blips[enteringName] = AddBlipForCoord(entering.x,  entering.y,  entering.z)
-
       SetBlipSprite(Blips[enteringName], 369)
       SetBlipAsShortRange(Blips[enteringName], true)
-
       BeginTextCommandSetBlipName("STRING")
       AddTextComponentString(_U('free_prop'))
       EndTextCommandSetBlipName(Blips[enteringName])
-
      end
-
   end
-
 end
 
-function MotellIsOwned(motell)
-  return OwnedMotells[motell.name] == true
+function motelIsOwned(motel)
+  return Ownedmotels[motel.name] == true
 end
 
-function OpenMotellMenu(motell)
-
+function OpenmotelMenu(motel)
   local elements = {}
-
-  if MotellIsOwned(motell) then
-
+  if motelIsOwned(motel) then
     table.insert(elements, {label = _U('enter'), value = 'enter'})
-
     if not Config.EnablePlayerManagement then
       table.insert(elements, {label = _U('leave'), value = 'leave'})
     end
-
   else
-
     if not Config.EnablePlayerManagement then
       table.insert(elements, {label = _U('rent'),   value = 'rent'})
     end
-
     table.insert(elements, {label = _U('visit'), value = 'visit'})
-
   end
 
   ESX.UI.Menu.Open(
-    'default', GetCurrentResourceName(), 'motell',
+    'default', GetCurrentResourceName(), 'motel',
     {
-      title    = 'Motell Reception',
+      title    = 'motel Reception',
       align    = 'top-left',
       elements = elements,
     },
     function(data2, menu)
-
       menu.close()
-
       if data2.current.value == 'enter' then
-        TriggerEvent('instance:create', 'motell', {motell = motell.name, owner = ESX.GetPlayerData().identifier})
+        TriggerEvent('instance:create', 'motel', {motel = motel.name, owner = ESX.GetPlayerData().identifier})
       end
-
       if data2.current.value == 'leave' then
-        TriggerServerEvent('froberg_motell:removeOwnedMotell', motell.name)
+        TriggerServerEvent('froberg_motel:removeOwnedmotel', motel.name)
       end
-
       if data2.current.value == 'rent' then
-        TriggerServerEvent('froberg_motell:rentMotell', motell.name)
+        TriggerServerEvent('froberg_motel:rentmotel', motel.name)
       end
-
       if data2.current.value == 'visit' then
-        TriggerEvent('instance:create', 'motell', {motell = motell.name, owner = ESX.GetPlayerData().identifier})
+        TriggerEvent('instance:create', 'motel', {motel = motel.name, owner = ESX.GetPlayerData().identifier})
       end
-
     end,
     function(data, menu)
-
         menu.close()
-
-        CurrentAction     = 'motell_menu'
+        CurrentAction     = 'motel_menu'
         CurrentActionMsg  = _U('press_to_menu')
-        CurrentActionData = {motell = motell}
+        CurrentActionData = {motel = motel}
     end
   )
-
 end
 
-function OpenGatewayMenu(motell)
-
+function OpenGatewayMenu(motel)
   if Config.EnablePlayerManagement then
-    OpenGatewayOwnedMotellsMenu(gatewayMotells)
+    OpenGatewayOwnedmotelsMenu(gatewaymotels)
   else
-
     ESX.UI.Menu.Open(
       'default', GetCurrentResourceName(), 'gateway',
       {
-        title    = motell.name,
+        title    = motel.name,
         align    = 'top-left',
         elements = {
-          {label = _U('owned_properties'),    value = 'owned_motells'},
-          {label = _U('available_properties'), value = 'available_motells'},
+          {label = _U('owned_properties'),    value = 'owned_motels'},
+          {label = _U('available_properties'), value = 'available_motels'},
         }
       },
       function(data, menu)
-
-        if data.current.value == 'owned_motells' then
-          OpenGatewayOwnedMotellsMenu(motell)
+        if data.current.value == 'owned_motels' then
+          OpenGatewayOwnedmotelsMenu(motel)
         end
-
-        if data.current.value == 'available_motells' then
-          OpenGatewayAvailableMotellsMenu(motell)
+        if data.current.value == 'available_motels' then
+          OpenGatewayAvailablemotelsMenu(motel)
         end
-
       end,
       function(data, menu)
-
         menu.close()
-
         CurrentAction     = 'gateway_menu'
         CurrentActionMsg  = _U('press_to_menu')
-        CurrentActionData = {motell = motell}
-
+        CurrentActionData = {motel = motel}
       end
     )
-
   end
-
 end
 
-function OpenGatewayOwnedMotellsMenu(motell)
-
-  local gatewayMotells = GetGatewayMotells(motell)
+function OpenGatewayOwnedmotelsMenu(motel)
+  local gatewaymotels = GetGatewaymotels(motel)
   local elements          = {}
-
-  for i=1, #gatewayMotells, 1 do
-
-    if MotellIsOwned(gatewayMotells[i]) then
+  for i=1, #gatewaymotels, 1 do
+    if motelIsOwned(gatewaymotels[i]) then
       table.insert(elements, {
-        label = gatewayMotells[i].label,
-        value = gatewayMotells[i].name
+        label = gatewaymotels[i].label,
+        value = gatewaymotels[i].name
       })
     end
-
   end
-
   ESX.UI.Menu.Open(
-    'default', GetCurrentResourceName(), 'gateway_owned_motells',
+    'default', GetCurrentResourceName(), 'gateway_owned_motels',
     {
-      title    = motell.name .. ' - ' .. _U('owned_motells'),
+      title    = motel.name .. ' - ' .. _U('owned_motels'),
       align    = 'top-left',
       elements = elements,
     },
     function(data, menu)
-
       menu.close()
-
       local elements = {
         {label = _U('enter'), value = 'enter'}
       }
-
       if not Config.EnablePlayerManagement then
         table.insert(elements, {label = _U('leave'), value = 'leave'})
       end
-
       ESX.UI.Menu.Open(
-        'default', GetCurrentResourceName(), 'gateway_owned_motells_actions',
+        'default', GetCurrentResourceName(), 'gateway_owned_motels_actions',
         {
           title    = data.current.label,
           align    = 'top-left',
           elements = elements,
         },
         function(data2, menu)
-
           menu.close()
-
           if data2.current.value == 'enter' then
-            TriggerEvent('instance:create', 'motell', {motell = data.current.value, owner = ESX.GetPlayerData().identifier})
+            TriggerEvent('instance:create', 'motel', {motel = data.current.value, owner = ESX.GetPlayerData().identifier})
           end
-
           if data2.current.value == 'leave' then
-            TriggerServerEvent('froberg_motell:removeOwnedMotell', data.current.value)
+            TriggerServerEvent('froberg_motel:removeOwnedmotel', data.current.value)
           end
-
         end,
         function(data, menu)
           menu.close()
         end
       )
-
     end,
     function(data, menu)
       menu.close()
     end
   )
-
 end
 
-function OpenGatewayAvailableMotellsMenu(motell)
-
-  local gatewayMotells = GetGatewayMotells(motell)
+function OpenGatewayAvailablemotelsMenu(motel)
+  local gatewaymotels = GetGatewaymotels(motel)
   local elements          = {}
-
-  for i=1, #gatewayMotells, 1 do
-
-    if not MotellIsOwned(gatewayMotells[i]) then
+  for i=1, #gatewaymotels, 1 do
+    if not motelIsOwned(gatewaymotels[i]) then
       table.insert(elements, {
-        label = gatewayMotells[i].label .. ' SEK' .. gatewayMotells[i].price,
-        value = gatewayMotells[i].name,
-        price = gatewayMotells[i].price
+        label = gatewaymotels[i].label .. ' SEK' .. gatewaymotels[i].price,
+        value = gatewaymotels[i].name,
+        price = gatewaymotels[i].price
       })
     end
-
   end
-
   ESX.UI.Menu.Open(
-    'default', GetCurrentResourceName(), 'gateway_available_motells',
+    'default', GetCurrentResourceName(), 'gateway_available_motels',
     {
-      title    = motell.name.. ' - ' .. _U('available_motells'),
+      title    = motel.name.. ' - ' .. _U('available_motels'),
       align    = 'top-left',
       elements = elements,
     },
     function(data, menu)
-
       menu.close()
-
       ESX.UI.Menu.Open(
-        'default', GetCurrentResourceName(), 'gateway_available_motells_actions',
+        'default', GetCurrentResourceName(), 'gateway_available_motels_actions',
         {
-          title    = motell.name,
+          title    = motel.name,
           align    = 'top-left',
           elements = {
             {label = _U('rent'),   value = 'rent'},
@@ -466,152 +348,119 @@ function OpenGatewayAvailableMotellsMenu(motell)
         },
         function(data2, menu)
           menu.close()
-
           if data2.current.value == 'rent' then
-            TriggerServerEvent('froberg_motell:rentMotell', data.current.value)
+            TriggerServerEvent('froberg_motel:rentmotel', data.current.value)
           end
-
           if data2.current.value == 'visit' then
-            TriggerEvent('instance:create', 'motell', {motell = data.current.value, owner = ESX.GetPlayerData().identifier})
+            TriggerEvent('instance:create', 'motel', {motel = data.current.value, owner = ESX.GetPlayerData().identifier})
           end
-
         end,
         function(data, menu)
           menu.close()
         end
       )
-
     end,
     function(data, menu)
       menu.close()
     end
   )
-
 end
 
-function OpenRoomMenu(motell, owner)
-
+function OpenRoomMenu(motel, owner)
   local entering = nil
   local elements = {}
-
-  if motell.isSingle then
-    entering = motell.entering
+  if motel.isSingle then
+    entering = motel.entering
   else
-    entering = GetGateway(motell).entering
+    entering = GetGateway(motel).entering
   end
-
   table.insert(elements, {label = _U('invite_player'),  value = 'invite_player'})
-
-  if CurrentMotellOwner == owner then
+  if CurrentmotelOwner == owner then
     table.insert(elements, {label = _U('player_clothes'), value = 'player_dressing'})
     table.insert(elements, {label = _U('remove_cloth'), value = 'remove_cloth'})
   end
-
   table.insert(elements, {label = _U('remove_object'),  value = 'room_inventory'})
   table.insert(elements, {label = _U('deposit_object'), value = 'player_inventory'})
-
   ESX.UI.Menu.CloseAll()
-
   ESX.UI.Menu.Open(
     'default', GetCurrentResourceName(), 'room',
     {
-      title    = motell.label,
+      title    = motel.label,
       align    = 'top-left',
       elements = elements,
     },
     function(data, menu)
-
       if data.current.value == 'invite_player' then
-
         local playersInArea = ESX.Game.GetPlayersInArea(entering, 10.0)
         local elements      = {}
-
         for i=1, #playersInArea, 1 do
           if playersInArea[i] ~= PlayerId() then
             table.insert(elements, {label = GetPlayerName(playersInArea[i]), value = playersInArea[i]})
           end
         end
-
         ESX.UI.Menu.Open(
           'default', GetCurrentResourceName(), 'room_invite',
           {
-            title    = motell.label .. ' - ' .. _U('invite'),
+            title    = motel.label .. ' - ' .. _U('invite'),
             align    = 'top-left',
             elements = elements,
           },
           function(data, menu)
-            TriggerEvent('instance:invite', 'motell', GetPlayerServerId(data.current.value), {motell = motell.name, owner = owner})
+            TriggerEvent('instance:invite', 'motel', GetPlayerServerId(data.current.value), {motel = motel.name, owner = owner})
             ESX.ShowNotification(_U('you_invited', GetPlayerName(data.current.value)))
           end,
           function(data, menu)
             menu.close()
           end
         )
-
       end
-
       if data.current.value == 'player_dressing' then
-
-        ESX.TriggerServerCallback('froberg_motell:getPlayerDressing', function(dressing)
-
+        ESX.TriggerServerCallback('froberg_motel:getPlayerDressing', function(dressing)
           local elements = {}
-
           for i=1, #dressing, 1 do
             table.insert(elements, {label = dressing[i], value = i})
           end
-
           ESX.UI.Menu.Open(
             'default', GetCurrentResourceName(), 'player_dressing',
             {
-              title    = motell.label .. ' - ' .. _U('player_clothes'),
+              title    = motel.label .. ' - ' .. _U('player_clothes'),
               align    = 'top-left',
               elements = elements,
             },
             function(data, menu)
-
               TriggerEvent('skinchanger:getSkin', function(skin)
-
-                ESX.TriggerServerCallback('froberg_motell:getPlayerOutfit', function(clothes)
-
+                ESX.TriggerServerCallback('froberg_motel:getPlayerOutfit', function(clothes)
                   TriggerEvent('skinchanger:loadClothes', skin, clothes)
                   TriggerEvent('esx_skin:setLastSkin', skin)
-
                   TriggerEvent('skinchanger:getSkin', function(skin)
                     TriggerServerEvent('esx_skin:save', skin)
                   end)
-
                 end, data.current.value)
-
               end)
-
             end,
             function(data, menu)
               menu.close()
             end
           )
-
         end)
-
       end
-        
       if data.current.value == 'remove_cloth' then
-          ESX.TriggerServerCallback('froberg_motell:getPlayerDressing', function(dressing)
+          ESX.TriggerServerCallback('froberg_motel:getPlayerDressing', function(dressing)
               local elements = {}
       
               for i=1, #dressing, 1 do
                   table.insert(elements, {label = dressing[i].label, value = i})
               end
-              
               ESX.UI.Menu.Open(
               'default', GetCurrentResourceName(), 'remove_cloth',
               {
-                title    = motell.label .. ' - ' .. _U('remove_cloth'),
+                title    = motel.label .. ' - ' .. _U('remove_cloth'),
                 align    = 'top-left',
                 elements = elements,
               },
               function(data, menu)
                   menu.close()
-                  TriggerServerEvent('froberg_motell:removeOutfit', data.current.value)
+                  TriggerServerEvent('froberg_motel:removeOutfit', data.current.value)
                   ESX.ShowNotification(_U('removed_cloth'))
               end,
               function(data, menu)
@@ -620,233 +469,167 @@ function OpenRoomMenu(motell, owner)
             )
           end)
       end
-
       if data.current.value == 'room_inventory' then
-        OpenRoomInventoryMenu(motell, owner)
+        OpenRoomInventoryMenu(motel, owner)
       end
-
       if data.current.value == 'player_inventory' then
-        OpenPlayerInventoryMenu(motell, owner)
+        OpenPlayerInventoryMenu(motel, owner)
       end
-
     end,
     function(data, menu)
-
       menu.close()
-
       CurrentAction     = 'room_menu'
       CurrentActionMsg  = _U('press_to_menu')
-      CurrentActionData = {motell = motell, owner = owner}
+      CurrentActionData = {motel = motel, owner = owner}
     end
   )
-
 end
 
-function OpenRoomInventoryMenu(motell, owner)
-
-  ESX.TriggerServerCallback('froberg_motell:getMotellInventory', function(inventory)
-
+function OpenRoomInventoryMenu(motel, owner)
+  ESX.TriggerServerCallback('froberg_motel:getmotelInventory', function(inventory)
     local elements = {}
-
     table.insert(elements, {label = _U('dirty_money') .. inventory.blackMoney, type = 'item_account', value = 'black_money'})
-
     for i=1, #inventory.items, 1 do
-
       local item = inventory.items[i]
-
       if item.count > 0 then
         table.insert(elements, {label = item.label .. ' x' .. item.count, type = 'item_standard', value = item.name})
       end
-
     end
-
     for i=1, #inventory.weapons, 1 do
       local weapon = inventory.weapons[i]
       table.insert(elements, {label = ESX.GetWeaponLabel(weapon.name) .. ' [' .. weapon.ammo .. ']', type = 'item_weapon', value = weapon.name, ammo = weapon.ammo})
     end
-
     ESX.UI.Menu.Open(
       'default', GetCurrentResourceName(), 'room_inventory',
       {
-        title    = motell.label .. ' - ' .. _U('inventory'),
+        title    = motel.label .. ' - ' .. _U('inventory'),
         align    = 'top-left',
         elements = elements,
       },
       function(data, menu)
-
         if data.current.type == 'item_weapon' then
-
           menu.close()
-
-          TriggerServerEvent('froberg_motell:getItem', owner, data.current.type, data.current.value, data.current.ammo)
-
+          TriggerServerEvent('froberg_motel:getItem', owner, data.current.type, data.current.value, data.current.ammo)
           ESX.SetTimeout(300, function()
-            OpenRoomInventoryMenu(motell, owner)
+            OpenRoomInventoryMenu(motel, owner)
           end)
-
         else
-
           ESX.UI.Menu.Open(
             'dialog', GetCurrentResourceName(), 'get_item_count',
             {
               title = _U('amount'),
             },
             function(data2, menu)
-
               local quantity = tonumber(data2.value)
-
               if quantity == nil then
                 ESX.ShowNotification(_U('amount_invalid'))
               else
-
                 menu.close()
-
-                TriggerServerEvent('froberg_motell:getItem', owner, data.current.type, data.current.value, quantity)
-
+                TriggerServerEvent('froberg_motel:getItem', owner, data.current.type, data.current.value, quantity)
                 ESX.SetTimeout(300, function()
-                  OpenRoomInventoryMenu(motell, owner)
+                  OpenRoomInventoryMenu(motel, owner)
                 end)
-
               end
-
             end,
             function(data2,menu)
               menu.close()
             end
           )
-
         end
-
       end,
       function(data, menu)
         menu.close()
       end
     )
-
   end, owner)
-
 end
 
-function OpenPlayerInventoryMenu(motell, owner)
-
-  ESX.TriggerServerCallback('froberg_motell:getPlayerInventory', function(inventory)
-
+function OpenPlayerInventoryMenu(motel, owner)
+  ESX.TriggerServerCallback('froberg_motel:getPlayerInventory', function(inventory)
     local elements = {}
-
     table.insert(elements, {label = _U('dirty_money') .. inventory.blackMoney, type = 'item_account', value = 'black_money'})
-
     for i=1, #inventory.items, 1 do
-
       local item = inventory.items[i]
-
       if item.count > 0 then
         table.insert(elements, {label = item.label .. ' x' .. item.count, type = 'item_standard', value = item.name})
       end
-
     end
-
     local playerPed  = GetPlayerPed(-1)
     local weaponList = ESX.GetWeaponList()
-
     for i=1, #weaponList, 1 do
-
       local weaponHash = GetHashKey(weaponList[i].name)
-
       if HasPedGotWeapon(playerPed,  weaponHash,  false) and weaponList[i].name ~= 'WEAPON_UNARMED' then
         local ammo = GetAmmoInPedWeapon(playerPed, weaponHash)
         table.insert(elements, {label = weaponList[i].label .. ' [' .. ammo .. ']', type = 'item_weapon', value = weaponList[i].name, ammo = ammo})
       end
 
     end
-
     ESX.UI.Menu.Open(
       'default', GetCurrentResourceName(), 'player_inventory',
       {
-        title    = motell.label .. ' - ' .. _U('inventory'),
+        title    = motel.label .. ' - ' .. _U('inventory'),
         align    = 'top-left',
         elements = elements,
       },
       function(data, menu)
-
         if data.current.type == 'item_weapon' then
-
           menu.close()
-
-          TriggerServerEvent('froberg_motell:putItem', owner, data.current.type, data.current.value, data.current.ammo)
-
+          TriggerServerEvent('froberg_motel:putItem', owner, data.current.type, data.current.value, data.current.ammo)
           ESX.SetTimeout(300, function()
-            OpenPlayerInventoryMenu(motell, owner)
+            OpenPlayerInventoryMenu(motel, owner)
           end)
-
         else
-
           ESX.UI.Menu.Open(
             'dialog', GetCurrentResourceName(), 'put_item_count',
             {
               title = _U('amount'),
             },
             function(data2, menu)
-
               menu.close()
-
-              TriggerServerEvent('froberg_motell:putItem', owner, data.current.type, data.current.value, tonumber(data2.value))
-
+              TriggerServerEvent('froberg_motel:putItem', owner, data.current.type, data.current.value, tonumber(data2.value))
               ESX.SetTimeout(300, function()
-                OpenPlayerInventoryMenu(motell, owner)
+                OpenPlayerInventoryMenu(motel, owner)
               end)
-
             end,
             function(data2,menu)
               menu.close()
             end
           )
-
         end
-
       end,
       function(data, menu)
         menu.close()
       end
     )
-
   end)
-
 end
 
 AddEventHandler('instance:loaded', function()
-
-  TriggerEvent('instance:registerType', 'motell',
+  TriggerEvent('instance:registerType', 'motel',
     function(instance)
-      EnterMotell(instance.data.motell, instance.data.owner)
+      Entermotel(instance.data.motel, instance.data.owner)
     end,
     function(instance)
-      ExitMotell(instance.data.motell)
+      Exitmotel(instance.data.motel)
     end
   )
-
 end)
 
 AddEventHandler('playerSpawned', function()
-
   if FirstSpawn then
-
     Citizen.CreateThread(function()
-
       while not ESX.IsPlayerLoaded() do
         Citizen.Wait(0)
       end
-
-      ESX.TriggerServerCallback('froberg_motell:getLastMotell', function(motellName)
-        if motellName ~= nil then
-          TriggerEvent('instance:create', 'motell', {motell = motellName, owner = ESX.GetPlayerData().identifier})
+      ESX.TriggerServerCallback('froberg_motel:getLastmotel', function(motelName)
+        if motelName ~= nil then
+          TriggerEvent('instance:create', 'motel', {motel = motelName, owner = ESX.GetPlayerData().identifier})
         end
       end)
 
     end)
-
     FirstSpawn = false
   end
-
 end)
 
 RegisterNetEvent('esx:playerLoaded')
@@ -854,64 +637,54 @@ AddEventHandler('esx:playerLoaded', function(xPlayer)
   PlayerLoaded = true
 end)
 
-AddEventHandler('froberg_motell:getMotells', function(cb)
-  cb(GetMotells())
+AddEventHandler('froberg_motel:getmotels', function(cb)
+  cb(Getmotels())
 end)
 
-AddEventHandler('froberg_motell:getMotell', function(name, cb)
-  cb(GetMotell(name))
+AddEventHandler('froberg_motel:getmotel', function(name, cb)
+  cb(Getmotel(name))
 end)
 
-AddEventHandler('froberg_motell:getGateway', function(motell, cb)
-  cb(GetGateway(motell))
+AddEventHandler('froberg_motel:getGateway', function(motel, cb)
+  cb(GetGateway(motel))
 end)
 
-RegisterNetEvent('froberg_motell:setMotellOwned')
-AddEventHandler('froberg_motell:setMotellOwned', function(name, owned)
-  SetMotellOwned(name, owned)
+RegisterNetEvent('froberg_motel:setmotelOwned')
+AddEventHandler('froberg_motel:setmotelOwned', function(name, owned)
+  SetmotelOwned(name, owned)
 end)
 
 RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer)
-
-  ESX.TriggerServerCallback('froberg_motell:getOwnedMotells', function(ownedMotells)
-    for i=1, #ownedMotells, 1 do
-      SetMotellOwned(ownedMotells[i], true)
+  ESX.TriggerServerCallback('froberg_motel:getOwnedmotels', function(ownedmotels)
+    for i=1, #ownedmotels, 1 do
+      SetmotelOwned(ownedmotels[i], true)
     end
   end)
-
 end)
 
 RegisterNetEvent('instance:onCreate')
 AddEventHandler('instance:onCreate', function(instance)
-
-  if instance.type == 'motell' then
+  if instance.type == 'motel' then
     TriggerEvent('instance:enter', instance)
   end
-
 end)
 
 RegisterNetEvent('instance:onEnter')
 AddEventHandler('instance:onEnter', function(instance)
-
-  if instance.type == 'motell' then
-
-    local motell = GetMotell(instance.data.motell)
+  if instance.type == 'motel' then
+    local motel = Getmotel(instance.data.motel)
     local isHost   = GetPlayerFromServerId(instance.host) == PlayerId()
     local isOwned  = false
-
-    if MotellIsOwned(motell) == true then
+    if motelIsOwned(motel) == true then
       isOwned = true
     end
-
     if(isOwned or not isHost) then
       HasChest = true
     else
       HasChest = false
     end
-
   end
-
 end)
 
 RegisterNetEvent('instance:onPlayerLeft')
@@ -921,196 +694,143 @@ AddEventHandler('instance:onPlayerLeft', function(instance, player)
   end
 end)
 
-AddEventHandler('froberg_motell:hasEnteredMarker', function(name, part)
-
-  local motell = GetMotell(name)
-
+AddEventHandler('froberg_motel:hasEnteredMarker', function(name, part)
+  local motel = Getmotel(name)
   if part == 'entering' then
-
-    if motell.isSingle then
-      CurrentAction     = 'motell_menu'
+    if motel.isSingle then
+      CurrentAction     = 'motel_menu'
       CurrentActionMsg  = _U('press_to_menu')
-      CurrentActionData = {motell = motell}
+      CurrentActionData = {motel = motel}
     else
       CurrentAction     = 'gateway_menu'
       CurrentActionMsg  = _U('press_to_menu')
-      CurrentActionData = {motell = motell}
+      CurrentActionData = {motel = motel}
     end
-
   end
-
   if part == 'exit' then
     CurrentAction     = 'room_exit'
     CurrentActionMsg  = _U('press_to_exit')
-    CurrentActionData = {motellName = name}
+    CurrentActionData = {motelName = name}
   end
-
   if part == 'roomMenu' then
     CurrentAction     = 'room_menu'
     CurrentActionMsg  = _U('press_to_menu')
-    CurrentActionData = {motell = motell, owner = CurrentMotellOwner}
+    CurrentActionData = {motel = motel, owner = CurrentmotelOwner}
   end
 
 end)
 
-AddEventHandler('froberg_motell:hasExitedMarker', function(name, part)
+AddEventHandler('froberg_motel:hasExitedMarker', function(name, part)
   ESX.UI.Menu.CloseAll()
   CurrentAction = nil
 end)
 
--- Init
 Citizen.CreateThread(function()
-
   while ESX == nil do
     TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
     Citizen.Wait(0)
   end
-
-  ESX.TriggerServerCallback('froberg_motell:getMotells', function(motells)
-    Config.Motells = motells
+  ESX.TriggerServerCallback('froberg_motel:getmotels', function(motels)
+    Config.motels = motels
     CreateBlips()
   end)
-
 end)
 
--- Display markers
 Citizen.CreateThread(function()
   while true do
-
     Wait(0)
-
     local coords = GetEntityCoords(GetPlayerPed(-1))
-
-    for i=1, #Config.Motells, 1 do
-
-      local motell = Config.Motells[i]
+    for i=1, #Config.motels, 1 do
+      local motel = Config.motels[i]
       local isHost   = false
-
-      if(motell.entering ~= nil and not motell.disabled and GetDistanceBetweenCoords(coords, motell.entering.x, motell.entering.y, motell.entering.z, true) < Config.DrawDistance) then
-        DrawMarker(Config.MarkerType, motell.entering.x, motell.entering.y, motell.entering.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, Config.MarkerSize.x, Config.MarkerSize.y, Config.MarkerSize.z, Config.MarkerColor.r, Config.MarkerColor.g, Config.MarkerColor.b, 100, false, true, 2, false, false, false, false)
+      if(motel.entering ~= nil and not motel.disabled and GetDistanceBetweenCoords(coords, motel.entering.x, motel.entering.y, motel.entering.z, true) < Config.DrawDistance) then
+        DrawMarker(Config.MarkerType, motel.entering.x, motel.entering.y, motel.entering.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, Config.MarkerSize.x, Config.MarkerSize.y, Config.MarkerSize.z, Config.MarkerColor.r, Config.MarkerColor.g, Config.MarkerColor.b, 100, false, true, 2, false, false, false, false)
       end
-
-      if(motell.exit ~= nil and not motell.disabled and GetDistanceBetweenCoords(coords, motell.exit.x, motell.exit.y, motell.exit.z, true) < Config.DrawDistance) then
-        DrawMarker(Config.MarkerType, motell.exit.x, motell.exit.y, motell.exit.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, Config.MarkerSize.x, Config.MarkerSize.y, Config.MarkerSize.z, Config.MarkerColor.r, Config.MarkerColor.g, Config.MarkerColor.b, 100, false, true, 2, false, false, false, false)
+      if(motel.exit ~= nil and not motel.disabled and GetDistanceBetweenCoords(coords, motel.exit.x, motel.exit.y, motel.exit.z, true) < Config.DrawDistance) then
+        DrawMarker(Config.MarkerType, motel.exit.x, motel.exit.y, motel.exit.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, Config.MarkerSize.x, Config.MarkerSize.y, Config.MarkerSize.z, Config.MarkerColor.r, Config.MarkerColor.g, Config.MarkerColor.b, 100, false, true, 2, false, false, false, false)
       end
-
-      if(motell.roomMenu ~= nil and HasChest and not motell.disabled and GetDistanceBetweenCoords(coords, motell.roomMenu.x, motell.roomMenu.y, motell.roomMenu.z, true) < Config.DrawDistance) then
-        DrawMarker(Config.MarkerType, motell.roomMenu.x, motell.roomMenu.y, motell.roomMenu.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, Config.MarkerSize.x, Config.MarkerSize.y, Config.MarkerSize.z, Config.RoomMenuMarkerColor.r, Config.RoomMenuMarkerColor.g, Config.RoomMenuMarkerColor.b, 100, false, true, 2, false, false, false, false)
+      if(motel.roomMenu ~= nil and HasChest and not motel.disabled and GetDistanceBetweenCoords(coords, motel.roomMenu.x, motel.roomMenu.y, motel.roomMenu.z, true) < Config.DrawDistance) then
+        DrawMarker(Config.MarkerType, motel.roomMenu.x, motel.roomMenu.y, motel.roomMenu.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, Config.MarkerSize.x, Config.MarkerSize.y, Config.MarkerSize.z, Config.RoomMenuMarkerColor.r, Config.RoomMenuMarkerColor.g, Config.RoomMenuMarkerColor.b, 100, false, true, 2, false, false, false, false)
       end
-
     end
-
   end
 end)
 
--- Enter / Exit marker events
 Citizen.CreateThread(function()
   while true do
-
     Wait(0)
-
     local coords          = GetEntityCoords(GetPlayerPed(-1))
     local isInMarker      = false
-    local currentMotell = nil
+    local currentmotel = nil
     local currentPart     = nil
-
-    for i=1, #Config.Motells, 1 do
-
-      local motell = Config.Motells[i]
-
-      if(motell.entering ~= nil and not motell.disabled and GetDistanceBetweenCoords(coords, motell.entering.x, motell.entering.y, motell.entering.z, true) < Config.MarkerSize.x) then
+    for i=1, #Config.motels, 1 do
+      local motel = Config.motels[i]
+      if(motel.entering ~= nil and not motel.disabled and GetDistanceBetweenCoords(coords, motel.entering.x, motel.entering.y, motel.entering.z, true) < Config.MarkerSize.x) then
         isInMarker      = true
-        currentMotell = motell.name
+        currentmotel = motel.name
         currentPart     = 'entering'
       end
-
-      if(motell.exit ~= nil and not motell.disabled and GetDistanceBetweenCoords(coords, motell.exit.x, motell.exit.y, motell.exit.z, true) < Config.MarkerSize.x) then
+      if(motel.exit ~= nil and not motel.disabled and GetDistanceBetweenCoords(coords, motel.exit.x, motel.exit.y, motel.exit.z, true) < Config.MarkerSize.x) then
         isInMarker      = true
-        currentMotell = motell.name
+        currentmotel = motel.name
         currentPart     = 'exit'
       end
-
-      if(motell.inside ~= nil and not motell.disabled and GetDistanceBetweenCoords(coords, motell.inside.x, motell.inside.y, motell.inside.z, true) < Config.MarkerSize.x) then
+      if(motel.inside ~= nil and not motel.disabled and GetDistanceBetweenCoords(coords, motel.inside.x, motel.inside.y, motel.inside.z, true) < Config.MarkerSize.x) then
         isInMarker      = true
-        currentMotell = motell.name
+        currentmotel = motel.name
         currentPart     = 'inside'
       end
-
-      if(motell.outside ~= nil and not motell.disabled and GetDistanceBetweenCoords(coords, motell.outside.x, motell.outside.y, motell.outside.z, true) < Config.MarkerSize.x) then
+      if(motel.outside ~= nil and not motel.disabled and GetDistanceBetweenCoords(coords, motel.outside.x, motel.outside.y, motel.outside.z, true) < Config.MarkerSize.x) then
         isInMarker      = true
-        currentMotell = motell.name
+        currentmotel = motel.name
         currentPart     = 'outside'
       end
-
-      if(motell.roomMenu ~= nil and HasChest and not motell.disabled and GetDistanceBetweenCoords(coords, motell.roomMenu.x, motell.roomMenu.y, motell.roomMenu.z, true) < Config.MarkerSize.x) then
+      if(motel.roomMenu ~= nil and HasChest and not motel.disabled and GetDistanceBetweenCoords(coords, motel.roomMenu.x, motel.roomMenu.y, motel.roomMenu.z, true) < Config.MarkerSize.x) then
         isInMarker      = true
-        currentMotell = motell.name
+        currentmotel = motel.name
         currentPart     = 'roomMenu'
       end
-
     end
-
-    if isInMarker and not HasAlreadyEnteredMarker or (isInMarker and (LastMotell ~= currentMotell or LastPart ~= currentPart) ) then
-
+    if isInMarker and not HasAlreadyEnteredMarker or (isInMarker and (Lastmotel ~= currentmotel or LastPart ~= currentPart) ) then
       HasAlreadyEnteredMarker = true
-      LastMotell            = currentMotell
+      Lastmotel            = currentmotel
       LastPart                = currentPart
-
-      TriggerEvent('froberg_motell:hasEnteredMarker', currentMotell, currentPart)
+      TriggerEvent('froberg_motel:hasEnteredMarker', currentmotel, currentPart)
     end
-
     if not isInMarker and HasAlreadyEnteredMarker then
-
       HasAlreadyEnteredMarker = false
-
-      TriggerEvent('froberg_motell:hasExitedMarker', LastMotell, LastPart)
+      TriggerEvent('froberg_motel:hasExitedMarker', Lastmotel, LastPart)
     end
-
   end
 end)
 
--- Key controls
 Citizen.CreateThread(function()
   while true do
-
     Citizen.Wait(0)
-
     if CurrentAction ~= nil then
-
       SetTextComponentFormat('STRING')
       AddTextComponentString(CurrentActionMsg)
       DisplayHelpTextFromStringLabel(0, 0, 1, -1)
-
       if IsControlPressed(0,  Keys['E']) and (GetGameTimer() - GUI.Time) > 300 then
-
-        if CurrentAction == 'motell_menu' then
-          OpenMotellMenu(CurrentActionData.motell)
+        if CurrentAction == 'motel_menu' then
+          OpenmotelMenu(CurrentActionData.motel)
         end
-
         if CurrentAction == 'gateway_menu' then
-
           if Config.EnablePlayerManagement then
-            OpenGatewayOwnedMotellsMenu(CurrentActionData.motell)
+            OpenGatewayOwnedmotelsMenu(CurrentActionData.motel)
           else
-            OpenGatewayMenu(CurrentActionData.motell)
+            OpenGatewayMenu(CurrentActionData.motel)
           end
-
         end
-
         if CurrentAction == 'room_menu' then
-          OpenRoomMenu(CurrentActionData.motell, CurrentActionData.owner)
+          OpenRoomMenu(CurrentActionData.motel, CurrentActionData.owner)
         end
-
         if CurrentAction == 'room_exit' then
           TriggerEvent('instance:leave')
         end
-
         CurrentAction = nil
         GUI.Time      = GetGameTimer()
-
       end
-
     end
-
   end
 end)
