@@ -2,15 +2,15 @@ ESX = nil
 
 TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 
-function Getmotel(name)
-  for i=1, #Config.motels, 1 do
-    if Config.motels[i].name == name then
-      return Config.motels[i]
+function GetMotel(name)
+  for i=1, #Config.Motels, 1 do
+    if Config.Motels[i].name == name then
+      return Config.Motels[i]
     end
   end
 end
 
-function SetmotelOwned(name, price, rented, owner)
+function SetMotelOwned(name, price, rented, owner)
   MySQL.Async.execute(
     'INSERT INTO owned_motel (name, price, rented, owner) VALUES (@name, @price, @rented, @owner)',
     {
@@ -24,9 +24,9 @@ function SetmotelOwned(name, price, rented, owner)
       for i=1, #xPlayers, 1 do
         local xPlayer = ESX.GetPlayerFromId(xPlayers[i])
         if xPlayer.identifier == owner then
-          TriggerClientEvent('froberg_motel:setmotelOwned', xPlayer.source, name, true)
+          TriggerClientEvent('froberg_motel:setMotelOwned', xPlayer.source, name, true)
           if rented then
-              TriggerClientEvent("pNotify:SendNotification",-1, {text = 'Du <font color="aqua">hyrde</font> ett motel rum för ' .. price .. '<font color="lime">SEK</font>/dygnet', type = "error", timeout = 5000, layout = "bottomCenter"})
+              TriggerClientEvent("pNotify:SendNotification",-1, {text = 'You <font color="aqua">rented </font> a motel room for ' .. price .. '<font color="lime">$</font>/day', type = "error", timeout = 5000, layout = "bottomCenter"})
           else
             TriggerClientEvent('esx:showNotification', xPlayer.source, _U('purchased_for') .. price)
           end
@@ -37,7 +37,7 @@ function SetmotelOwned(name, price, rented, owner)
   )
 end
 
-function RemoveOwnedmotel(name, owner)
+function RemoveOwnedMotel(name, owner)
   MySQL.Async.execute(
     'DELETE FROM owned_motel WHERE name = @name AND owner = @owner',
     {
@@ -49,7 +49,7 @@ function RemoveOwnedmotel(name, owner)
       for i=1, #xPlayers, 1 do
         local xPlayer = ESX.GetPlayerFromId(xPlayers[i])
         if xPlayer.identifier == owner then
-          TriggerClientEvent('froberg_motel:setmotelOwned', xPlayer.source, name, false)
+          TriggerClientEvent('froberg_motel:setMotelOwned', xPlayer.source, name, false)
           TriggerClientEvent('esx:showNotification', xPlayer.source, _U('made_property'))
           break
         end
@@ -99,7 +99,7 @@ AddEventHandler('onMySQLReady', function ()
       if motels[i].room_menu ~= nil then
         roomMenu = json.decode(motels[i].room_menu)
       end
-      table.insert(Config.motels, {
+      table.insert(Config.Motels, {
         name      = motels[i].name,
         label     = motels[i].label,
         entering  = entering,
@@ -118,65 +118,65 @@ AddEventHandler('onMySQLReady', function ()
   end)
 end)
 
-AddEventHandler('froberg_ownedmotel:getOwnedmotels', function(cb)
+AddEventHandler('froberg_ownedmotel:getOwnedMotels', function(cb)
   MySQL.Async.fetchAll(
     'SELECT * FROM owned_motel',
     {},
     function(result)
       local motels = {}
       for i=1, #result, 1 do
-        table.insert(motels, {
-          id     = result[i].id,
-          name   = result[i].name,
-          price  = result[i].price,
-          rented = (result[i].rented == 1 and true or false),
-          owner  = result[i].owner,
-        })
-      end
+				table.insert(motels, {
+					id     = result[i].id,
+					name   = result[i].name,
+					price  = result[i].price,
+					rented = (result[i].rented == 1 and true or false),
+					owner  = result[i].owner,
+				})
+			end
       cb(motels)
     end
   )
 end)
 
-AddEventHandler('froberg_motel:setmotelOwned', function(name, price, rented, owner)
-  SetmotelOwned(name, price, rented, owner)
+AddEventHandler('froberg_motel:setMotelOwned', function(name, price, rented, owner)
+  SetMotelOwned(name, price, rented, owner)
 end)
 
-AddEventHandler('froberg_motel:removeOwnedmotel', function(name, owner)
-  RemoveOwnedmotel(name, owner)
+AddEventHandler('froberg_motel:removeOwnedMotel', function(name, owner)
+  RemoveOwnedMotel(name, owner)
 end)
 
-RegisterServerEvent('froberg_motel:rentmotel')
-AddEventHandler('froberg_motel:rentmotel', function(motelName)
+RegisterServerEvent('froberg_motel:rentMotel')
+AddEventHandler('froberg_motel:rentMotel', function(motelName)
   local xPlayer  = ESX.GetPlayerFromId(source)
-  local motel = Getmotel(motelName)
-  SetmotelOwned(motelName, motel.price / 200, true, xPlayer.identifier)
+  local motel = GetMotel(motelName)
+  SetMotelOwned(motelName, motel.price / 200, true, xPlayer.identifier)
 end)
 
-RegisterServerEvent('froberg_motel:buymotel')
-AddEventHandler('froberg_motel:buymotel', function(motelName)
+RegisterServerEvent('froberg_motel:buyMotel')
+AddEventHandler('froberg_motel:buyMotel', function(motelName)
   local xPlayer  = ESX.GetPlayerFromId(source)
-  local motel = Getmotel(motelName)
+  local motel = GetMotel(motelName)
   if motel.price <= xPlayer.get('money') then
     xPlayer.removeMoney(motel.price)
-    SetmotelOwned(motelName, motel.price, false, xPlayer.identifier)
+    SetMotelOwned(motelName, motel.price, false, xPlayer.identifier)
   else
     TriggerClientEvent('esx:showNotification', source, _U('not_enough'))
   end
 end)
 
-RegisterServerEvent('froberg_motel:removeOwnedmotel')
-AddEventHandler('froberg_motel:removeOwnedmotel', function(motelName)
+RegisterServerEvent('froberg_motel:removeOwnedMotel')
+AddEventHandler('froberg_motel:removeOwnedMotel', function(motelName)
   local xPlayer = ESX.GetPlayerFromId(source)
-  RemoveOwnedmotel(motelName, xPlayer.identifier)
+  RemoveOwnedMotel(motelName, xPlayer.identifier)
 end)
 
-AddEventHandler('froberg_motel:removeOwnedmotelIdentifier', function(motelName, identifier)
-  RemoveOwnedmotel(motelName, identifier)
+AddEventHandler('froberg_motel:removeOwnedMotelIdentifier', function(motelName, identifier)
+  RemoveOwnedMotel(motelName, identifier)
 end)
 
-RegisterServerEvent('froberg_motel:saveLastmotel')
-AddEventHandler('froberg_motel:saveLastmotel', function(motel)
+RegisterServerEvent('froberg_motel:saveLastMotel')
+AddEventHandler('froberg_motel:saveLastMotel', function(motel)
   local xPlayer = ESX.GetPlayerFromId(source)
   MySQL.Async.execute(
     'UPDATE users SET last_motel = @last_motel WHERE identifier = @identifier',
@@ -187,8 +187,8 @@ AddEventHandler('froberg_motel:saveLastmotel', function(motel)
   )
 end)
 
-RegisterServerEvent('froberg_motel:deleteLastmotel')
-AddEventHandler('froberg_motel:deleteLastmotel', function()
+RegisterServerEvent('froberg_motel:deleteLastMotel')
+AddEventHandler('froberg_motel:deleteLastMotel', function()
   local xPlayer = ESX.GetPlayerFromId(source)
   MySQL.Async.execute(
     'UPDATE users SET last_motel = NULL WHERE identifier = @identifier',
@@ -200,26 +200,26 @@ end)
 
 RegisterServerEvent('froberg_motel:getItem')
 AddEventHandler('froberg_motel:getItem', function(owner, type, item, count)
-  local _source      = source
-  local xPlayer      = ESX.GetPlayerFromId(_source)
-  local xPlayerOwner = ESX.GetPlayerFromIdentifier(owner)
-  if type == 'item_standard' then
-    local sourceItem = xPlayer.getInventoryItem(item)
-    TriggerEvent('esx_addoninventory:getInventory', 'motel', xPlayerOwner.identifier, function(inventory)
-      local inventoryItem = inventory.getItem(item)
-      if count > 0 and inventoryItem.count >= count then
-        if sourceItem.limit ~= -1 and (sourceItem.count + count) > sourceItem.limit then
-          TriggerClientEvent('esx:showNotification', _source, _U('player_cannot_hold'))
-        else
-          inventory.removeItem(item, count)
-          xPlayer.addInventoryItem(item, count)
-          TriggerClientEvent('esx:showNotification', _source, _U('have_withdrawn', count, inventoryItem.label))
-        end
-      else
-        TriggerClientEvent('esx:showNotification', _source, _U('not_enough_in_property'))
-      end
-    end)
-  end
+	local _source      = source
+	local xPlayer      = ESX.GetPlayerFromId(_source)
+	local xPlayerOwner = ESX.GetPlayerFromIdentifier(owner)
+	if type == 'item_standard' then
+		local sourceItem = xPlayer.getInventoryItem(item)
+		TriggerEvent('esx_addoninventory:getInventory', 'motel', xPlayerOwner.identifier, function(inventory)
+			local inventoryItem = inventory.getItem(item)
+			if count > 0 and inventoryItem.count >= count then
+				if sourceItem.limit ~= -1 and (sourceItem.count + count) > sourceItem.limit then
+					TriggerClientEvent('esx:showNotification', _source, _U('player_cannot_hold'))
+				else
+					inventory.removeItem(item, count)
+					xPlayer.addInventoryItem(item, count)
+					TriggerClientEvent('esx:showNotification', _source, _U('have_withdrawn', count, inventoryItem.label))
+				end
+			else
+				TriggerClientEvent('esx:showNotification', _source, _U('not_enough_in_property'))
+			end
+		end)
+	end
   if type == 'item_account' then
     TriggerEvent('esx_addonaccount:getAccount', 'motel_' .. item, xPlayerOwner.identifier, function(account)
       local roomAccountMoney = account.money
@@ -231,7 +231,6 @@ AddEventHandler('froberg_motel:getItem', function(owner, type, item, count)
       end
     end)
   end
-
   if type == 'item_weapon' then
     TriggerEvent('esx_datastore:getDataStore', 'motel', xPlayerOwner.identifier, function(store)
       local storeWeapons = store.get('weapons')
@@ -298,28 +297,28 @@ AddEventHandler('froberg_motel:putItem', function(owner, type, item, count)
   end
 end)
 
-ESX.RegisterServerCallback('froberg_motel:getmotels', function(source, cb)
-  cb(Config.motels)
+ESX.RegisterServerCallback('froberg_motel:getMotels', function(source, cb)
+  cb(Config.Motels)
 end)
 
-ESX.RegisterServerCallback('froberg_motel:getOwnedmotels', function(source, cb)
+ESX.RegisterServerCallback('froberg_motel:getOwnedMotels', function(source, cb)
   local xPlayer = ESX.GetPlayerFromId(source)
   MySQL.Async.fetchAll(
     'SELECT * FROM owned_motel WHERE owner = @owner',
     {
       ['@owner'] = xPlayer.identifier
     },
-    function(ownedmotels)
+    function(ownedMotels)
       local motels = {}
-      for i=1, #ownedmotels, 1 do
-        table.insert(motels, ownedmotels[i].name)
+      for i=1, #ownedMotels, 1 do
+        table.insert(motels, ownedMotels[i].name)
       end
       cb(motels)
     end
   )
 end)
 
-ESX.RegisterServerCallback('froberg_motel:getLastmotel', function(source, cb)
+ESX.RegisterServerCallback('froberg_motel:getLastMotel', function(source, cb)
   local xPlayer = ESX.GetPlayerFromId(source)
   MySQL.Async.fetchAll(
     'SELECT * FROM users WHERE identifier = @identifier',
@@ -332,7 +331,7 @@ ESX.RegisterServerCallback('froberg_motel:getLastmotel', function(source, cb)
   )
 end)
 
-ESX.RegisterServerCallback('froberg_motel:getmotelInventory', function(source, cb, owner)
+ESX.RegisterServerCallback('froberg_motel:getMotelInventory', function(source, cb, owner)
   local xPlayer    = ESX.GetPlayerFromIdentifier(owner)
   local blackMoney = 0
   local items      = {}
@@ -402,27 +401,27 @@ AddEventHandler('froberg_motel:removeOutfit', function(label)
 end)
 
 function PayRent()
-  MySQL.Async.fetchAll(
-  'SELECT * FROM owned_motel WHERE rented = 1', {},
-  function (result)
-    for i=1, #result, 1 do
-      local xPlayer = ESX.GetPlayerFromIdentifier(result[i].owner)
-      if xPlayer ~= nil then
-        xPlayer.removeBank(result[i].price)
-        TriggerClientEvent('esx:showNotification', xPlayer.source, _U('paid_rent', result[i].price))
-      else
-        MySQL.Sync.execute(
-        'UPDATE users SET bank = bank - @bank WHERE identifier = @identifier',
-        {
-          ['@bank']       = result[i].price,
-          ['@identifier'] = result[i].owner
-        })
-      end
-      TriggerEvent('esx_addonaccount:getSharedAccount', 'society_realestateagent', function(account)
-        account.addMoney(result[i].price)
-      end)
-    end
-  end)
+	MySQL.Async.fetchAll(
+	'SELECT * FROM owned_motel WHERE rented = 1', {},
+	function (result)
+		for i=1, #result, 1 do
+			local xPlayer = ESX.GetPlayerFromIdentifier(result[i].owner)
+			if xPlayer ~= nil then
+				xPlayer.removeBank(result[i].price)
+				TriggerClientEvent('esx:showNotification', xPlayer.source, _U('paid_rent', result[i].price))
+			else
+				MySQL.Sync.execute(
+				'UPDATE users SET bank = bank - @bank WHERE identifier = @identifier',
+				{
+					['@bank']       = result[i].price,
+					['@identifier'] = result[i].owner
+				})
+			end
+			TriggerEvent('esx_addonaccount:getSharedAccount', 'society_realestateagent', function(account)
+				account.addMoney(result[i].price)
+			end)
+		end
+	end)
 end
 
 TriggerEvent('cron:runAt', 1, 0, PayRent)
