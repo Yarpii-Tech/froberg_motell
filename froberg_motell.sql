@@ -1,4 +1,3 @@
-
 ALTER TABLE `users`
   ADD COLUMN `last_motel` VARCHAR(255) NULL
 ;
