@@ -5,6 +5,6 @@ Config.MarkerColor            = {r = 102, g = 102, b = 204}
 Config.RoomMenuMarkerColor    = {r = 102, g = 204, b = 102}
 Config.MarkerType             = 27
 Config.Zones                  = {}
-Config.Motels                 = {}
+Config.Motels             = {}
 Config.EnablePlayerManagement = false -- If set to true you need esx_realestateagentjob
-Config.Locale                 = 'sv'
+Config.Locale                 = 'en'
