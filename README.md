@@ -4,7 +4,7 @@ This is esx_property but a motel that you only have the function of renting (as 
 
 ## How to:
 * Upload the folder froberg_motell somehwere in your resource folder.
-* Rename froberg_motell to froberg_motel
+* Rename froberg_motell-master to froberg_motel
 * Find & Import froberg_motel.sql to your database.
 * add this to your server.cfg
 ```
