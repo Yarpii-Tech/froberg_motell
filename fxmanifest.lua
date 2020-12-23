@@ -1,8 +1,5 @@
-resource_manifest_version '44febabe-d386-4d18-afbe-5e627f4af937'
-
-description 'froberg_motell'
-
-version '1.0'
+fx_version 'cerulean'
+game 'gta5'
 
 server_scripts {
 	'@es_extended/locale.lua',
@@ -19,6 +16,4 @@ client_scripts {
 	'client/main.lua'
 }
 
-dependencies {
-	'instance'
-}
+dependency 'instance'
